@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Address Book</title>
+    <style>
+        /* Reset some default styles */
+        body, h1, h2, ul, li {
+            margin: 0;
+            padding: 0;
+        }
+        
+        /* Global styles */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            text-align: center;
+        }
+        
+        /* Header styles */
+        h1 {
+            background-color: #3498db;
+            color: white;
+            padding: 20px 0;
+        }
+        
+        /* Form container styles */
+        .form-container {
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        
+        /* Form styles */
+        form label {
+            display: block;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        form input[type="text"],
+        form input[type="tel"],
+        form textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 5px -5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        
+        form input[type="file"] {
+            width: 100%;
+            margin-top: 10px;
+        }
+        
+        form button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        
+        /* List styles */
+        .address-book {
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin: 20px auto;
+            overflow: hidden;
+            max-width: 100%; /* Allow it to take up the full width of the parent container */
+            padding: 10px; /* Add some padding for spacing */
+        }
+        
+        .address-book h2 {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 0;
+        }
+        
+        .entry {
+            border-top: 1px solid #ccc;
+            text-align: left;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .entry button {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #myImage {
+            width: 100%; /* 100% width of its container */
+            max-width: 400px; /* Optional maximum width */
+            height: auto; /* Maintain aspect ratio */
+        }
+        .entry {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        /* Style the contact name and other details */
+        .entry span {
+            font-weight: bold;
+        }
+
+        /* Style the image */
+        .entry img {
+            max-width: 100%; /* Limit the image width to its container's width */
+            max-height: 200px; /* Limit the image height to a maximum value */
+            width: auto; /* Automatically adjust width to maintain aspect ratio */
+            height: auto; /* Automatically adjust height to maintain aspect ratio */
+        }
+
+        /* Style the buttons */
+        .entry button {
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            margin-top: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .entry button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Use a fancy font (Google Fonts) */
+        body {
+            font-family: 'Open Sans', sans-serif;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            border-radius: 5px;
+            width: 80%;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Address Book</h1>
+    
+    <!-- Form container -->
+    <div class="form-container">
+        <h2>Add New Entry</h2>
+        <form id="addForm">
+            <label for="name">Name</label>
+            <input type="text" id="name" required>
+            
+            <label for="mobile">Mobile Number</label>
+            <input type="tel" id="mobile" required>
+            
+            <label for="address">Address</label>
+            <textarea id="address" required></textarea>
+            
+            <label for="image_path">Profile Picture</label>
+            <input type="file" id="image_path" accept="image/jpeg, image/jpg, image/png">
+            
+            <button type="button" onclick="addToAddressBook()">Add to Address Book</button>
+        </form>
+    </div>
+
+    <!-- Address book list -->
+    <div class="address-book">
+        <h2>Address Book Entries</h2>
+        <ul id="addressBookList">
+            <!-- Entries will be dynamically loaded here using JavaScript -->
+        </ul>
+    </div>
+    
+    <script>
+        // JavaScript code for dynamic behavior
+        let selectedContactID = null;
+        function addToAddressBook() {
+            // Get form values
+            const name = document.getElementById("name").value;
+            const mobile = document.getElementById("mobile").value;
+            const address = document.getElementById("address").value;
+            const image_path = document.getElementById('image_path').files[0];
+            const formData = new FormData();
+            formData.append("name", name);
+            formData.append("mobile", mobile);
+            formData.append("address", address);
+            formData.append("image_path", image_path);
+
+            fetch('http://localhost:8080/api/add', {
+            method: 'POST',
+            body: formData,
+            })
+            .then((response) => response.json())
+            .then((data) => {
+            // Clear input fields
+            console.log(data);
+            document.getElementById("name").value = "";
+            document.getElementById("mobile").value = "";
+            document.getElementById("address").value = "";
+            document.getElementById("image_path").value = "";
+
+            // Reload and display updated contact list
+            loadAddress();
+        })
+        .catch((error) => {
+            console.error("Error adding contact:", error);
+        });
+        }
+
+        function loadAddress() {
+            const addressBookList = document.getElementById("addressBookList");
+            addressBookList.innerHTML = "";
+
+            // Make an AJAX GET request to fetch the list of contacts from the backend
+            fetch("http://localhost:8080/api/getall")
+                .then((response) => response.json())
+                .then((data) => {
+                    console.log(data);
+                    data.forEach((address) => {
+                        // Create a card for each contact
+                        var image = address.image_path;
+                        var parts = image.split('\\');
+                        var filename = parts[parts.length - 1];
+                        var imagePath = `../uploads/${filename}`;
+                        const listItem = document.createElement("li");
+                        listItem.classList.add("entry");
+                        listItem.innerHTML = `
+                            <span><strong>ID:</strong> ${address.id}</span><br>
+                            <span><strong>Name:</strong> ${address.name}</span><br>
+                            <span><strong>Mobile:</strong> ${address.mobile}</span><br>
+                            <span><strong>Address:</strong> ${address.address}</span><br>
+                            <img id = "myImage" src="${imagePath}" alt="${address.name}'s Image"><br>
+                            <button onclick="openEditAddressModal(${address.id}, '${address.name}', '${address.mobile}', '${address.address}', '${address.image_path}')">Update</button>
+                            <button onclick="deleteAddress(${address.id})">Delete</button>
+                        `;
+                        addressBookList.appendChild(listItem);
+                    });
+                })
+                .catch((error) => {
+                    console.error("Error loading address:", error);
+                });
+        }
+        // Function to open the edit contact modal
+        function openEditAddressModal(id, name, mobile, address, image_path) {
+            const modal = document.getElementById("editAddressModal");
+            const editID = document.getElementById("editID");
+            const editName = document.getElementById("editName");
+            const editMobile = document.getElementById("editMobile");
+            const editAddress = document.getElementById("editAddress");
+            const editImagePath = document.getElementById("editImagePath")
+
+            editID.value = id;
+            editName.value = name;
+            editMobile.value = mobile;
+            editAddress.value = address;
+
+            modal.style.display = "block";
+        }
+
+        // Function to close the edit contact modal
+        function closeEditAddressModal() {
+            const modal = document.getElementById("editAddressModal");
+            modal.style.display = "none";
+        }
+
+        // Function to save edited contact
+        function saveEditedAddress() {
+            const id = document.getElementById("editID");
+            updateAddress(id);
+            closeEditAddressModal();
+        }
+
+        function updateAddress(id) {
+            const editID = document.getElementById("editID").value;
+            const editName = document.getElementById("editName").value;
+            const editMobile = document.getElementById("editMobile").value;
+            const editAddress = document.getElementById("editAddress").value;
+            const editImagePath = document.getElementById("editImagePath").value;
+
+            // Make an AJAX PUT request to update the contact details
+            fetch(`http://localhost:8080/api/update/${editID}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    name: editName,
+                    mobile: editMobile,
+                    address: editAddress,
+                    image_path: editImagePath,
+                }),
+            })
+                .then((response) => response.json())
+                .then(() => {
+                    // Hide the editContactForm
+                    selectedContactID = null;
+    
+                    // Reload and display updated contact list
+                    loadAddress();
+                })
+                .catch((error) => {
+                    console.error("Error updating address:", error);
+                });
+        }
+
+        function deleteAddress(id) {
+            const confirmation = confirm("Are you sure you want to delete this contact?");
+    
+            if (confirmation) {
+                // Make an AJAX DELETE request to delete the contact using contactID
+                fetch(`http://localhost:8080/api/delete/${id}`, {
+                    method: "DELETE"
+                    })
+                    .then(() => {
+                        // Reload and display updated contact list
+                        loadAddress();
+                    })
+                    .catch((error) => {
+                        console.error("Error deleting contact:", error);
+                    });
+                }
+        }
+
+        // Call loadAddress() to display address on page load
+        loadAddress();
+
+    </script>
+    <!-- Edit Contact Modal -->
+<div id="editAddressModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeEditContactModal()">&times;</span>
+        <h2>Edit Contact</h2>
+        <form id="editForm">
+            <input type="hidden" id="editID">
+            <label for="editName">Name:</label>
+            <input type="text" id="editName" required>
+            
+            <label for="editMobile">Mobile Number:</label>
+            <input type="tel" id="editMobile" required>
+            
+            <label for="editAddress">Address:</label>
+            <textarea id="editAddress" required></textarea>
+            
+            <label for="editImagePath">Profile Picture:</label>
+            <input type="file" id="editImagePath" accept="image/jpeg, image/jpg, image/png">
+            
+            <button type="button" onclick="saveEditedAddress()">Save</button>
+            <button type="button" onclick="closeEditAddressModal()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
