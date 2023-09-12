@@ -13,8 +13,6 @@ func Router() http.Handler {
 
 	router := mux.NewRouter()
 	fs := http.FileServer(http.Dir("frontend"))
-
-	// Handle requests to the "/static/" path by serving static files
 	router.PathPrefix("/frontend/").Handler(http.StripPrefix("/frontend/", fs))
 
 	router.Use(corsMiddleware)
@@ -27,8 +25,6 @@ func Router() http.Handler {
 	router.HandleFunc("/images/", middleware.ServeImage).Methods("GET", "OPTIONS")
 
 	c := cors.Default()
-
-	// Wrap the router with the CORS handler
 	handler := c.Handler(router)
 
 	return handler
